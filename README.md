@@ -1,1 +1,1 @@
-"# pattern_poc" 
+# pattern_poc
