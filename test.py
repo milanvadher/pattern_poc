@@ -3,6 +3,8 @@ from pymongo import MongoClient
 from bson.json_util import dumps
 from flask_cors import CORS
 import pandas as pd
+import numpy as np
+from scipy.signal import argrelextrema
 
 app = Flask(__name__)
 CORS(app)
@@ -14,6 +16,12 @@ db = client.pattern_poc
 # connect to collection
 testTable = db.test
 dataTable = db.dummyData
+
+
+def remove_duplication(seq):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in seq if not (x in seen or seen_add(x))]
 
 
 # test api
@@ -37,13 +45,12 @@ def upload_csv():
     # Create variable for uploaded file
     df = pd.read_csv(request.files['fileupload'])
 
-    # conver data to dict
+    # convert data to dict
     records_ = df.to_dict(orient='records')
 
     # upload data to db
     dataTable.insert_many(records_)
 
-    #do something list of dictionaries
     return jsonify({'success': 'Data uploaded successfully!!'})
 
 
@@ -53,7 +60,7 @@ def get_dummyData():
     _date = []
     _open = []
     _high = []
-    _low =[]
+    _low = []
     _close = []
     _volume = []
     for data in dataTable.find({}):
@@ -63,9 +70,11 @@ def get_dummyData():
         _low.append(data['Low'])
         _close.append(data['Close'])
         _volume.append(data['Volume '])
-    
+
     return jsonify(
-        {'date': _date},
+        {
+            'date': _date
+        },
         {'open': _open},
         {'high': _high},
         {'low': _low},
@@ -75,8 +84,80 @@ def get_dummyData():
     # return dumps(dataTable.find({}))
 
 
-# @app.route('/')
-# def generate_chart():
+@app.route('/getTrianglePattern')
+def triangle_pattern():
+    volume = []
+    date = []
+    trianglePattern = []
+    firstpoint = []
+    peakoint = []
+    lastpoint = []
+
+    for data in dataTable.find({}):
+        volume.append(data['Volume '])
+        date.append(data['Time (UTC)'])
+
+    data = pd.DataFrame({'vol': volume})
+    data = data.drop_duplicates(keep=False)
+
+    data.columns = [['vol']]
+
+    _volume = data['vol']
+
+    # print(_volume)
+
+    for i in range(0, len(_volume)):
+        max_idx = list(
+            argrelextrema(_volume.values[:i], np.greater, order=10)[0])
+        min_idx = list(argrelextrema(_volume.values[:i], np.less, order=10)[0])
+
+        idx = max_idx + min_idx + [len(_volume[:i] - 1)]
+
+        idx.sort()
+
+        current_idx = idx[-3:]
+
+        start = min(current_idx)
+        end = max(current_idx)
+
+        current_pat = _volume.values[current_idx]
+
+        peaks = _volume.values[idx]
+
+        if (len(current_idx) == 3):
+            XA = current_pat[1] - current_pat[0]
+            AB = current_pat[2] - current_pat[1]
+
+            if XA > 0 and AB < 0:
+                # trianglePattern.append(current_pat)
+                trianglePattern.append([
+                    [
+                        date[volume.index(current_pat[0])],
+                        volume[volume.index(current_pat[0])]
+                    ],
+                    [
+                        date[volume.index(current_pat[1])],
+                        volume[volume.index(current_pat[1])]
+                    ],
+                    [
+                        date[volume.index(current_pat[2])],
+                        volume[volume.index(current_pat[2])]
+                    ],
+                ])
+                peakoint.append(volume[volume.index(current_pat[1])])
+                firstpoint.append(volume[volume.index(current_pat[0])])
+                lastpoint.append(volume[volume.index(current_pat[2])])
+
+    # peakoint = remove_duplication(peakoint)
+    # firstpoint = remove_duplication(firstpoint)
+    # lastpoint = remove_duplication(lastpoint)
+
+    print("PeakPoints : ", len(peakoint), " : ")
+    print("FirstPoints : ", len(firstpoint), " : ")
+    print("LastPoints : ", len(lastpoint), " : ")
+
+    return (jsonify({"trianglePattern": trianglePattern}))
+
 
 # run api
 if __name__ == '__main__':
