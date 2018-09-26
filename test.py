@@ -16,7 +16,6 @@ db = client.pattern_poc
 # connect to collection
 testTable = db.test
 dataTable = db.dummyData
-finalPatterns = []
 
 
 def remove_duplication(seq):
@@ -86,6 +85,7 @@ def get_dummyData():
 
 # for triangle pattern optimised
 def best_pattern(pattern):
+    finalPatterns = []
     if pattern:
         # print(pattern)
         temp = []
@@ -162,6 +162,7 @@ def triangle_pattern():
     # firstpoint = remove_duplication(firstpoint)
     # lastpoint = remove_duplication(lastpoint)
     firstPattern = []
+    finalPatterns = []
     first = trianglePattern[0][0][1]
     for i in range(0, len(trianglePattern)):
         if first != trianglePattern[i][0][1]:
@@ -179,9 +180,10 @@ def triangle_pattern():
             # print(i, trianglePattern[i])
             firstPattern.append(trianglePattern[i])
 
-    print("PeakPoints : ", len(peakoint), " : ")
-    print("FirstPoints : ", len(firstpoint), " : ")
-    print("LastPoints : ", len(lastpoint), " : ")
+    # print("PeakPoints : ", len(peakoint), " : ")
+    # print("FirstPoints : ", len(firstpoint), " : ")
+    # print("LastPoints : ", len(lastpoint), " : ")
+    print("total triangle : ", len(finalPatterns))
 
     return (jsonify({"trianglePattern": finalPatterns}))
 
