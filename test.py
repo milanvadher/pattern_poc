@@ -84,6 +84,7 @@ def get_dummyData():
     )
     # return dumps(dataTable.find({}))
 
+# for triangle pattern optimised
 def best_pattern(pattern):
     if pattern:
         # print(pattern)
