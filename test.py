@@ -16,6 +16,7 @@ db = client.pattern_poc
 # connect to collection
 testTable = db.test
 dataTable = db.dummyData
+finalPatterns = []
 
 
 def remove_duplication(seq):
@@ -83,6 +84,14 @@ def get_dummyData():
     )
     # return dumps(dataTable.find({}))
 
+def best_pattern(pattern):
+    if pattern:
+        # print(pattern)
+        temp = []
+        for last in pattern:
+            temp.append(last[2][1])
+        finalPatterns.append(pattern[temp.index(min(temp))])
+        print(finalPatterns, '***************')
 
 @app.route('/getTrianglePattern')
 def triangle_pattern():
@@ -144,20 +153,36 @@ def triangle_pattern():
                         volume[volume.index(current_pat[2])]
                     ],
                 ])
-                peakoint.append(volume[volume.index(current_pat[1])])
                 firstpoint.append(volume[volume.index(current_pat[0])])
+                peakoint.append(volume[volume.index(current_pat[1])])
                 lastpoint.append(volume[volume.index(current_pat[2])])
 
     # peakoint = remove_duplication(peakoint)
     # firstpoint = remove_duplication(firstpoint)
     # lastpoint = remove_duplication(lastpoint)
+    firstPattern = []
+    first = trianglePattern[0][0][1]
+    for i in range(0, len(trianglePattern)):
+        if first != trianglePattern[i][0][1]:
+            if firstPattern:
+                # print(pattern)
+                temp = []
+                for last in firstPattern:
+                    temp.append(last[2][1])
+                finalPatterns.append(firstPattern[temp.index(min(temp))])
+                # print(finalPatterns, '***************')
+            firstPattern = []
+            first = trianglePattern[i][0][1]
+            # break
+        else:
+            # print(i, trianglePattern[i])
+            firstPattern.append(trianglePattern[i])
 
     print("PeakPoints : ", len(peakoint), " : ")
     print("FirstPoints : ", len(firstpoint), " : ")
     print("LastPoints : ", len(lastpoint), " : ")
 
-    return (jsonify({"trianglePattern": trianglePattern}))
-
+    return (jsonify({"trianglePattern": finalPatterns}))
 
 # run api
 if __name__ == '__main__':
