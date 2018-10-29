@@ -1,13 +1,13 @@
 from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from bson.json_util import dumps
-from flask_cors import CORS
+# from flask_cors import CORS
 import pandas as pd
 import numpy as np
 from scipy.signal import argrelextrema
 
 app = Flask(__name__)
-CORS(app)
+# CORS(app)
 client = MongoClient('localhost', 27017)  # localDB
 
 # connect to db
@@ -310,4 +310,4 @@ def triangle_pattern():
 
 # run api
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port=5001)
